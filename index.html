@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>EDT Demo &mdash; Waymark Gardens</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</head>
+<body>
+
+<div class="story-overlay" id="storyOverlay">
+  <div class="story-modal">
+    <div class="sm-title">&#9654; Start Story Mode</div>
+    <div class="sm-sub">The demo walks through the full care cycle automatically, from passive sensor collection through to a critical intervention alert. Ideal for live presentations.</div>
+    <button class="sm-btn" onclick="startStory()">Start auto demo</button>
+    <button class="sm-btn cancel" onclick="closeStoryOverlay()">Cancel</button>
+  </div>
+</div>
+<div class="story-progress"><div class="story-prog-fill" id="storyProgFill"></div></div>
+<div class="story-step-label" id="storyStepLabel"></div>
+
+<nav class="site-nav">
+  <div class="sn-brand">
+    <div class="sn-logo">EDT</div>
+    <span class="sn-name">Elderly Digital Twin</span>
+    <span class="sn-tag">&middot; Waymark Gardens</span>
+  </div>
+  <div class="sn-center">
+    <a class="sn-link active" href="#rpm">&#128247; RPM Simulation</a>
+    <a class="sn-link" href="#dashboard">Care Dashboard</a>
+  </div>
+  <div class="sn-right">
+    <button class="story-btn" id="storyBtn">&#9654; Story Mode</button>
+    <div class="nav-clock" id="clk">--:--:-- --</div>
+  </div>
+</nav>
+
+<div style="height:52px"></div>
+
+<!-- SECTION 1: RPM — Visionary Hook -->
+<div class="section-hero" id="rpm">
+  <div class="sh-step">Step 1 of 2 &middot; Remote Patient Monitoring</div>
+  <div class="sh-title">Predicting health crises <em>before the alarm rings.</em></div>
+  <div class="sh-sub">Standard remote patient monitoring is reactive. It alerts after something has already gone wrong. The Elderly Digital Twin analyzes passive sensor data continuously, detecting subtle behavioral drift before it becomes a crisis.</div>
+  <div class="sh-hint">&#128073; See how IR motion sensors and the HijiSense wearable capture movement data passively in real time</div>
+</div>
+
+<div class="rpm-wrap">
+  <div class="rpm-top">
+    <div>
+      <div class="rpm-name">George Mitchell &middot; Age 78 &middot; Unit 214</div>
+      <div class="rpm-meta"> Movement log &middot; 07:00 AM to 09:05 AM &middot;</div>
+    </div>
+    <div class="badges">
+      <div class="badge-live"><div class="dotlive"></div>Sensors recording</div>
+    </div>
+  </div>
+  <div class="sensor-info-row">
+    <div class="sensor-chip">
+      <div class="sensor-chip-icon">&#128308;</div>
+      <div class="sensor-chip-body">
+        <div class="sensor-chip-name">IR Motion Sensors</div>
+        <div class="sensor-chip-desc">Infrared sensors mounted across the unit. Detect presence and movement without any input from the resident.</div>
+      </div>
+    </div>
+    <div class="sensor-chip">
+      <div class="sensor-chip-icon">&#128276;</div>
+      <div class="sensor-chip-body">
+        <div class="sensor-chip-name">HijiSense Wearable</div>
+        <div class="sensor-chip-desc">Sock worn accelerometer that captures gait data, stride length and posture changes in real time.</div>
+      </div>
+    </div>
+    <div class="sensor-chip">
+      <div class="sensor-chip-icon">&#127908;</div>
+      <div class="sensor-chip-body">
+        <div class="sensor-chip-name">Amazon Alexa</div>
+        <div class="sensor-chip-desc">Daily morning check-in responses analyzed for sentiment, vocal latency and keyword risk indicators.</div>
+      </div>
+    </div>
+  </div>
+  <div class="rpm-stage" id="stg">
+    <img class="fimg on" id="i0" src="images/01_bed_resting.png" alt="Lying in bed">
+    <img class="fimg"    id="i1" src="images/02_standing_bed.png" alt="Standing beside bed">
+    <img class="fimg"    id="i2" src="images/03_corridor.png" alt="Walking corridor">
+    <img class="fimg"    id="i3" src="images/04_living_room.png" alt="Near sofa">
+    <img class="fimg"    id="i4" src="images/05_dining.png" alt="Dining table">
+    <img class="fimg"    id="i5" src="images/06_kitchen.png" alt="Kitchen counter">
+    <img class="fimg"    id="i6" src="images/07_bathroom.png" alt="Bathroom">
+    <canvas id="sc"></canvas>
+    <div class="frame-caption">
+      <div class="fc-inner">
+        <div class="fc-what" id="fcWhat">George is resting in his bedroom</div>
+        <div class="fc-why" id="fcWhy">IR-BED sensor detects presence &mdash; event logged to cloud at 07:00 AM &mdash; data pipeline begins processing</div>
+      </div>
+    </div>
+    <div class="rpm-badge">
+      <div class="ov-room" id="ovR">Bedroom</div>
+      <div class="ov-sensor"><div class="sensordot"></div><span id="ovS">IR-BED triggered</span></div>
+      <div class="ov-time" id="ovT">07:00 AM</div>
+    </div>
+    <div class="prog-track"><div class="prog-fill" id="pf" style="width:0%"></div></div>
+  </div>
+
+  <!-- Media Controls -->
+  <div class="ctrl-row">
+    <div class="cbtns">
+      <button class="cbtn" id="btnPrev" onclick="ctrlPrev()">&#9664; Prev</button>
+      <button class="cbtn primary" id="btnPlay" onclick="ctrlPlayPause()">&#9646;&#9646; Pause</button>
+      <button class="cbtn" id="btnNext" onclick="ctrlNext()">Next &#9654;</button>
+    </div>
+    <div class="spd" id="frameCounter">Frame 1 / 7</div>
+  </div>
+  <div class="rpm-stats">
+    <div class="rsc"><div class="rsl">Current location</div><div class="rsv" style="color:var(--blue)" id="sLoc">Bedroom</div><div class="rss" id="sSen">IR-BED active</div></div>
+    <div class="rsc"><div class="rsl">What happened</div><div class="rsv" style="font-size:14px" id="sAct">Resting in bed</div><div class="rss" id="sTm">07:00 AM</div></div>
+    <div class="rsc"><div class="rsl">System status</div><div class="rsv" style="color:var(--green)">Recording</div><div class="rss">All 6 sensors online</div></div>
+  </div>
+</div>
+
+<!-- TRANSITION — Collapsible for investors -->
+<div class="transition-band">
+    <div class="tb-label">Every sensor event flows through the EDT intelligence pipeline</div>
+    <div class="tb-flow">
+      <div class="tb-node hi">IR Sensors</div><div class="tb-arr">&#8594;</div>
+      <div class="tb-node hi">Wearable</div><div class="tb-arr">&#8594;</div>
+      <div class="tb-node">IoT Hub</div><div class="tb-arr">&#8594;</div>
+      <div class="tb-node">Data Lake</div><div class="tb-arr">&#8594;</div>
+      <div class="tb-node">ML Engine</div><div class="tb-arr">&#8594;</div>
+      <div class="tb-node">NLP (Alexa)</div><div class="tb-arr">&#8594;</div>
+      <div class="tb-node hi">Digital Twin</div><div class="tb-arr">&#8594;</div>
+      <div class="tb-node hi">Care Dashboard &#8595;</div>
+    </div>
+    <div class="tb-insight">The result is a <em>living profile of every resident</em>, updated continuously and visible to the care team in the dashboard below.</div>
+    <div class="tb-stack">
+      <div class="tb-stack-item"><span class="tb-stack-label">Ingestion</span><span class="tb-stack-val">IoT Hub and Event Hubs</span></div>
+      <div class="tb-stack-item"><span class="tb-stack-label">Storage</span><span class="tb-stack-val">Data Lake Gen2 and Databricks Delta</span></div>
+      <div class="tb-stack-item"><span class="tb-stack-label">ML Layer</span><span class="tb-stack-val">ML pipeline, anomaly detection and survival analysis</span></div>
+      <div class="tb-stack-item"><span class="tb-stack-label">Twin Engine</span><span class="tb-stack-val">Digital Twin engine with FHIR R4 EMR integration</span></div>
+      <div class="tb-stack-item"><span class="tb-stack-label">NLP</span><span class="tb-stack-val">Amazon Alexa morning check-ins, sentiment scoring and response latency analysis</span></div>
+      <div class="tb-stack-item"><span class="tb-stack-label">Compliance</span><span class="tb-stack-val">HIPAA compliant, IRB consent management and algorithmic bias auditing</span></div>
+    </div>
+  </div>
+
+<!-- SECTION 2: DASHBOARD -->
+<div class="section-hero" id="dashboard">
+  <div class="sh-step">Step 2 of 2 &middot; Care Intelligence Dashboard</div>
+  <div class="sh-title">What does the <em>care team see</em>?</div>
+  <div class="sh-sub">A unified view of every resident covering physical health, mental wellness and clinical signals, with early warnings surfaced before a crisis occurs.</div>
+  <div class="sh-hint">&#128073; Use the scenario controls below to see how the system responds across different health states</div>
+</div>
+
+<div class="dash-nav">
+  <div class="dash-resident-info">
+    <div class="dr-avatar" id="drAvatar" style="background:#EFF6FF;color:#1B3A5C">GM</div>
+    <span class="dr-name" id="drName">George Mitchell</span>
+    <span class="dr-unit" id="drUnit">Unit 214</span>
+  </div>
+  <div class="scenario-row">
+    <div class="demo-box">
+      <span class="demo-label">Interactive Demo &mdash; Simulate a health state &rarr;</span>
+      <div class="sc-wrap">
+        <button class="sc-btn sc-stable active" onclick="setScenario('stable')">&#9679; Stable</button>
+        <button class="sc-btn sc-declining" onclick="setScenario('declining')">&#8595; Declining</button>
+        <button class="sc-btn sc-critical" onclick="setScenario('critical')">&#9888; Critical</button>
+      </div>
+      <span class="sc-hint" id="scHint">All signals normal</span>
+    </div>
+  </div>
+</div>
+
+<div class="app">
+  <div class="sidebar">
+    <div class="sb-header">Residents</div>
+    <div class="sb-desc">All monitored residents. The color bar indicates current status. Select any resident to load their full Digital Twin profile.</div>
+    <div id="sidebarList"></div>
+  </div>
+  <div class="main">
+    <div class="section-label">&#127919; Active Resident &mdash; EDT Risk Summary</div>
+    <div class="section-desc">The EDT Risk Score combines physical, mental and clinical signals into a single score from 0 to 100. A score above 60 triggers a watch alert. Above 80 requires immediate intervention.</div>
+    <div class="risk-hero" id="riskHero">
+      <div class="rh-left">
+        <div class="rh-name" id="rhName">George Mitchell</div>
+        <div class="rh-meta" id="rhMeta">Age 78 &middot; Unit 214 &middot; Hypertension, T2 Diabetes</div>
+        <div class="rh-signals" id="rhSignals"></div>
+      </div>
+      <div class="rh-center">
+        <div class="rh-score-wrap">
+          <svg width="90" height="90" class="score-ring">
+            <circle class="ring-bg" cx="45" cy="45" r="38"/>
+            <circle class="ring-fill" id="ringFill" cx="45" cy="45" r="38" stroke-dasharray="239" stroke-dashoffset="239"/>
+          </svg>
+          <div class="rh-score-num">
+            <div class="rh-num" id="rhScore">18</div>
+            <div class="rh-label" id="rhLabel" style="color:var(--green)">STABLE</div>
+          </div>
+        </div>
+        <div style="font-size:10px;color:var(--txt3);margin-top:6px">EDT Risk Score / 100</div>
+      </div>
+      <div class="rh-right">
+        <div class="rh-trend" id="rhTrend">Trend: &rarr; Stable</div>
+        <button class="rh-action" id="rhAction" style="background:var(--gsoft);color:var(--green)">No action needed</button>
+      </div>
+    </div>
+    <div class="section-label">&#128202; Facility at a Glance</div>
+    <div class="section-desc">A real time snapshot of all monitored residents. If the Intervene count is above zero, review the Alerts tab straight away.</div>
+    <div class="stat-strip">
+      <div class="stat-tile"><div class="st-lbl">Residents</div><div class="st-val" style="color:var(--blue)" id="cntTotal">142</div><div class="st-sub">Total monitored</div></div>
+      <div class="stat-tile"><div class="st-lbl">Stable</div><div class="st-val" style="color:var(--green)" id="cntStable">135</div><div class="st-sub">Normal range</div></div>
+      <div class="stat-tile"><div class="st-lbl">Watch</div><div class="st-val" style="color:var(--amber)" id="cntWatch">5</div><div class="st-sub">Early signals</div></div>
+      <div class="stat-tile"><div class="st-lbl">Intervene</div><div class="st-val" style="color:var(--red)" id="cntCrit">2</div><div class="st-sub">Act now</div></div>
+    </div>
+    <div class="section-label">&#128196; Resident Intelligence Layers</div>
+    <div class="section-desc">Four views into the same underlying data. <strong>Facility Overview</strong> shows who needs attention today. <strong>Resident Profile</strong> is the full Digital Twin for the selected resident. <strong>Activity Log</strong> shows a per-sensor event history for the selected resident. <strong>Alerts and Actions</strong> shows what the care team needs to act on right now.</div>
+    <div class="tab-row">
+      <button class="tab-btn active" onclick="switchTab('overview',this)"><span class="tab-icon">&#127968;</span>Facility Overview</button>
+      <button class="tab-btn" onclick="switchTab('profile',this)"><span class="tab-icon">&#129489;</span>Resident Profile</button>
+      <button class="tab-btn" onclick="switchTab('actlog',this)"><span class="tab-icon">&#128337;</span>Activity Log</button>
+      <button class="tab-btn" onclick="switchTab('alerts',this)"><span class="tab-icon">&#128680;</span>Alerts &amp; Actions</button>
+    </div>
+    <div class="tab-content active" id="tab-overview">
+      <div class="click-hint">&#128073; Select any resident card to load their full Digital Twin profile including physical metrics, mental wellness scores, clinical data and a 7 day predictive trajectory</div>
+      <div class="fac-grid" id="facGrid"></div>
+    </div>
+    <div class="tab-content" id="tab-profile">
+      <div class="profile-intro">The Resident Profile is the Digital Twin made visible. It covers every data layer the system collects, from IR motion sensor movement patterns and HijiSense wearable gait data through to predictive fall risk modelling and care team recommendations.</div>
+      <div class="metrics-grid">
+        <div class="metric-card full">
+          <div class="mc-header"><div class="mc-icon" style="background:var(--bsoft)">&#127939;</div><div class="mc-title">Physical Metrics &mdash; IR Motion Sensors and HijiSense Wearable</div><div class="mc-sub">30 day trend with personal baseline</div></div>
+          <div class="kpi-grid" id="physKPIs"></div>
+          <div class="chart-wrap"><canvas id="physChart"></canvas></div>
+        </div>
+        <div class="metric-card half2">
+          <div class="mc-header"><div class="mc-icon" style="background:var(--psoft)">&#129504;</div><div class="mc-title">Mental Wellness &mdash; Alexa Morning Check-in Analysis</div></div>
+          <div class="kpi-grid-2" id="mentalKPIs"></div>
+          <div class="tx-box" id="txBox">"Good morning. Feeling well today."</div>
+          <div class="nlp-tags" id="nlpTags"></div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-header"><div class="mc-icon" style="background:var(--psoft)">&#128200;</div><div class="mc-title">Sentiment trend</div></div>
+          <div class="chart-sm"><canvas id="sentChart"></canvas></div>
+        </div>
+        <div class="metric-card full">
+          <div class="mc-header"><div class="mc-icon" style="background:rgba(20,184,166,.12)">&#127973;</div><div class="mc-title">Clinical Metrics &mdash; EMR and Telehealth Data</div></div>
+          <div class="kpi-grid" id="clinKPIs"></div>
+        </div>
+        <div class="metric-card full">
+          <div class="mc-header"><div class="mc-icon" style="background:var(--asoft)">&#128202;</div><div class="mc-title">Baseline Deviation Engine</div><div class="mc-sub">Flags signals that deviate from the resident's 30 day personal baseline</div></div>
+          <div id="devRows"></div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-header"><div class="mc-icon" style="background:var(--rsoft)">&#9888;</div><div class="mc-title">7 Day Fall Risk Trajectory</div></div>
+          <div class="pred-chart"><canvas id="predFall"></canvas></div>
+          <div class="traj-note"><div class="traj-dot" id="tdFall"></div><span id="tlFall">Loading...</span></div>
+        </div>
+        <div class="metric-card">
+          <div class="mc-header"><div class="mc-icon" style="background:var(--rsoft)">&#128657;</div><div class="mc-title">ER Transfer Probability</div></div>
+          <div class="pred-chart"><canvas id="predER"></canvas></div>
+          <div class="traj-note"><div class="traj-dot" id="tdER"></div><span id="tlER">Loading...</span></div>
+        </div>
+        <div class="metric-card full">
+          <div class="mc-header"><div class="mc-icon" style="background:var(--gsoft)">&#128161;</div><div class="mc-title">Prescriptive Recommendations for the Care Team</div></div>
+          <div id="recs"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tab-content" id="tab-alerts"><div class="section-label" style="margin-bottom:4px">&#128680; Prioritized Action Queue</div><div class="section-desc" style="margin-bottom:16px">Alerts are ranked by severity. Critical alerts in red require immediate dispatch. Watch alerts in amber require review within 24 hours. The system generates all alerts automatically with no manual flagging required.</div><div id="alertsList"></div></div>
+    <div class="tab-content" id="tab-actlog">
+      <div class="al-toolbar">
+        <div class="al-toolbar-left">
+          <div class="al-range-group">
+            <button class="al-range-btn active" id="rangeBtn30" onclick="alSetRange('30d')">Past 30 Days</button>
+            <button class="al-range-btn" id="rangeBtnToday" onclick="alSetRange('today')">Today</button>
+            <button class="al-range-btn" id="rangeBtnCustom" onclick="alSetRange('custom')">Custom</button>
+          </div>
+          <div class="al-custom-range hidden" id="alCustomRange">
+            <input type="date" id="alDateFrom" class="al-date-input">
+            <span class="al-date-sep">to</span>
+            <input type="date" id="alDateTo" class="al-date-input">
+            <button class="al-apply-btn" onclick="alApplyCustom()">Apply</button>
+          </div>
+        </div>
+        <div class="al-toolbar-right">
+          <div class="al-sensor-filters" id="alSensorFilters"></div>
+        </div>
+      </div>
+      <div class="al-summary-strip" id="alSummaryStrip"></div>
+      <div class="al-log-wrap">
+        <div class="al-log-header">
+          <span class="alh-time">Time</span>
+          <span class="alh-sensor">Sensor</span>
+          <span class="alh-location">Location</span>
+          <span class="alh-event">Event</span>
+          <span class="alh-mob">MOB</span>
+          <span class="alh-gait">GAIT</span>
+          <span class="alh-dur">Duration</span>
+          <span class="alh-status">Status</span>
+        </div>
+        <div class="al-log-body" id="alLogBody"></div>
+      </div>
+      <div class="al-log-footer" id="alLogFooter"></div>
+    </div>
+  </div>
+</div>
+
+<script src="js/app.js"></script>
+</body>
+</html>

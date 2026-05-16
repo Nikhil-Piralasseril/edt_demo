@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activity Log &mdash; George Mitchell &mdash; EDT</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/styles.css">
+<link rel="stylesheet" href="css/activity-log.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+</head>
+<body>
+
+<nav class="site-nav">
+  <div class="sn-brand">
+    <div class="sn-logo">EDT</div>
+    <span class="sn-name">Elderly Digital Twin</span>
+    <span class="sn-tag">&middot; Waymark Gardens</span>
+  </div>
+  <div class="sn-center">
+    <a class="sn-link" href="index.html">&#128247; RPM Simulation</a>
+    <a class="sn-link" href="index.html#dashboard">Care Dashboard</a>
+  </div>
+  <div class="sn-right">
+    <div class="nav-clock" id="clk">--:--:-- --</div>
+  </div>
+</nav>
+
+<div style="height:56px"></div>
+
+<!-- Page Header -->
+<div class="al-header">
+  <div class="al-header-left">
+    <div class="al-resident-badge">
+      <div class="al-avatar">GM</div>
+      <div>
+        <div class="al-resident-name">George Mitchell</div>
+        <div class="al-resident-meta">Age 78 &middot; Unit 214 &middot; Hypertension, T2 Diabetes</div>
+      </div>
+    </div>
+    <div class="al-title-block">
+      <h1 class="al-page-title">Activity Log</h1>
+      <p class="al-page-sub">30 day history, today and a 7 day predictive forecast across all sensor streams.</p>
+    </div>
+  </div>
+  <div class="al-header-right">
+    <div class="al-range-tabs" id="rangeTabs">
+      <button class="al-range-btn active" onclick="setRange('past30')">Past 30 Days</button>
+      <button class="al-range-btn" onclick="setRange('today')">Today</button>
+      <button class="al-range-btn" onclick="setRange('forecast')">7 Day Forecast</button>
+    </div>
+    <div class="al-live-badge"><div class="dotlive"></div>Live data</div>
+  </div>
+</div>
+
+<!-- KPI Summary Strip -->
+<div class="al-kpi-strip" id="kpiStrip">
+  <div class="al-kpi-card">
+    <div class="al-kpi-icon" style="background:rgba(37,99,235,.1)">&#127939;</div>
+    <div class="al-kpi-body">
+      <div class="al-kpi-label">Avg Daily Steps</div>
+      <div class="al-kpi-val" id="kpiSteps">2,840</div>
+      <div class="al-kpi-trend up">&#9650; 4% vs last week</div>
+    </div>
+  </div>
+  <div class="al-kpi-card">
+    <div class="al-kpi-icon" style="background:rgba(21,128,61,.09)">&#128564;</div>
+    <div class="al-kpi-body">
+      <div class="al-kpi-label">Avg Sleep Duration</div>
+      <div class="al-kpi-val" id="kpiSleep">6.4 hrs</div>
+      <div class="al-kpi-trend neutral">&#8594; Stable vs last week</div>
+    </div>
+  </div>
+  <div class="al-kpi-card">
+    <div class="al-kpi-icon" style="background:rgba(91,33,182,.09)">&#129504;</div>
+    <div class="al-kpi-body">
+      <div class="al-kpi-label">Avg Sentiment Score</div>
+      <div class="al-kpi-val" id="kpiSent">78 / 100</div>
+      <div class="al-kpi-trend up">&#9650; Positive trend</div>
+    </div>
+  </div>
+  <div class="al-kpi-card">
+    <div class="al-kpi-icon" style="background:rgba(185,28,28,.09)">&#9888;</div>
+    <div class="al-kpi-body">
+      <div class="al-kpi-label">Avg Fall Risk Index</div>
+      <div class="al-kpi-val" id="kpiFall">14 / 100</div>
+      <div class="al-kpi-trend up">&#9660; 2pts vs last week</div>
+    </div>
+  </div>
+  <div class="al-kpi-card">
+    <div class="al-kpi-icon" style="background:rgba(180,83,9,.09)">&#128138;</div>
+    <div class="al-kpi-body">
+      <div class="al-kpi-label">Med Adherence</div>
+      <div class="al-kpi-val" id="kpiMed">94%</div>
+      <div class="al-kpi-trend up">&#9650; Above target</div>
+    </div>
+  </div>
+  <div class="al-kpi-card">
+    <div class="al-kpi-icon" style="background:rgba(37,99,235,.08)">&#127939;</div>
+    <div class="al-kpi-body">
+      <div class="al-kpi-label">Avg Mobility Score</div>
+      <div class="al-kpi-val" id="kpiMob">84 / 100</div>
+      <div class="al-kpi-trend neutral">&#8594; Within baseline</div>
+    </div>
+  </div>
+</div>
+
+<!-- Main Content Area -->
+<div class="al-body">
+
+  <!-- LEFT: Timeline Log -->
+  <div class="al-left">
+
+    <!-- Section: Past / Today / Forecast toggle content -->
+    <div class="al-section" id="secPast30">
+      <div class="al-section-header">
+        <div class="al-section-title">&#128337; 30 Day Activity History</div>
+        <div class="al-section-sub">Aggregated daily summaries from IR motion sensors and HijiSense wearable. Select any day to expand the hourly log.</div>
+      </div>
+      <div class="al-day-list" id="dayList"></div>
+    </div>
+
+    <div class="al-section hidden" id="secToday">
+      <div class="al-section-header">
+        <div class="al-section-title">&#128338; Today at a Glance</div>
+        <div class="al-section-sub">Hourly sensor events from 12:00 AM to now. Updates in real time.</div>
+      </div>
+      <div class="al-hourly-list" id="hourlyList"></div>
+    </div>
+
+    <div class="al-section hidden" id="secForecast">
+      <div class="al-section-header">
+        <div class="al-section-title">&#128302; 7 Day Predictive Forecast</div>
+        <div class="al-section-sub">Projected metrics based on the 30 day personal baseline and detected trend direction. Confidence bands indicate model certainty.</div>
+      </div>
+      <div class="al-forecast-note">
+        <span class="al-forecast-badge">EDT Prediction Engine</span>
+        These are model projections, not confirmed data. The further out the prediction, the wider the confidence band. Any metric crossing the intervention threshold triggers an automatic alert.
+      </div>
+      <div class="al-day-list" id="forecastList"></div>
+    </div>
+
+  </div>
+
+  <!-- RIGHT: Charts Panel -->
+  <div class="al-right">
+
+    <!-- Chart 1: Activity Overview -->
+    <div class="al-chart-card">
+      <div class="al-chart-header">
+        <div class="al-chart-title">Mobility and Fall Risk</div>
+        <div class="al-chart-sub" id="chartRangeLabel">30 day trend</div>
+      </div>
+      <div class="al-chart-wrap"><canvas id="chartMobility"></canvas></div>
+    </div>
+
+    <!-- Chart 2: Sleep -->
+    <div class="al-chart-card">
+      <div class="al-chart-header">
+        <div class="al-chart-title">Sleep Duration</div>
+        <div class="al-chart-sub">Hours per night vs 6 hour minimum baseline</div>
+      </div>
+      <div class="al-chart-wrap"><canvas id="chartSleep"></canvas></div>
+    </div>
+
+    <!-- Chart 3: Mental Wellness -->
+    <div class="al-chart-card">
+      <div class="al-chart-header">
+        <div class="al-chart-title">Mental Wellness and Sentiment</div>
+        <div class="al-chart-sub">Alexa morning check-in scoring</div>
+      </div>
+      <div class="al-chart-wrap"><canvas id="chartSentiment"></canvas></div>
+    </div>
+
+    <!-- Chart 4: Bathroom routine -->
+    <div class="al-chart-card">
+      <div class="al-chart-header">
+        <div class="al-chart-title">Bathroom Visit Frequency</div>
+        <div class="al-chart-sub">Daily visits vs personal baseline range</div>
+      </div>
+      <div class="al-chart-wrap"><canvas id="chartBathroom"></canvas></div>
+    </div>
+
+    <!-- Sensor Activity Heatmap -->
+    <div class="al-chart-card">
+      <div class="al-chart-header">
+        <div class="al-chart-title">Sensor Activity Heatmap</div>
+        <div class="al-chart-sub">Daily trigger frequency by sensor zone</div>
+      </div>
+      <div class="al-heatmap" id="heatmap"></div>
+    </div>
+
+  </div>
+</div>
+
+<script src="js/activity-log.js"></script>
+</body>
+</html>
